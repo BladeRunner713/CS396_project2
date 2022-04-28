@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
-path = "C:/Users/gaolingxiao/Desktop/CS396_project2/data/"
+path = "C:/Users/Leona/PycharmProjects/CS396_project2/data/"
 aapl = pd.read_csv(path + "AAPL.csv")
 df = pd.DataFrame(aapl["Date"])
 df["AAPL"] = aapl["Close/Last"].str[1:].astype(float) / aapl["Open"].str[1:].astype(float)
@@ -41,17 +42,17 @@ print(df)
 k = 10
 n = 253
 epsilon = (np.log(10) / 253) ** 0.5
-print(epsilon)
+print("Theoretical optimal learning rate is", epsilon)
 values = [0] * 10
 p = [0] * 10
-total_payoff = 0
+ALG = 0
 for index, row in df.iterrows():
+    h = max(row[1:])
     if index == 0:
         # First day, random choose a stock
-        total_payoff += np.random.choice(row[1:])
+        ALG += np.random.choice(row[1:])
     else:
         # Choose stock based on probability
-        h = max(row[1:])
         sum_value = 0
         for i in range(10):
             sum_value += (1 + epsilon) ** (values[i] / h)
@@ -59,7 +60,41 @@ for index, row in df.iterrows():
             # Calculate the probability
             p[i] = (1 + epsilon) ** (values[i] / h) / sum_value
         # Select a stock, sum the total payoff
-        total_payoff += np.random.choice(row[1:], p=p)
+        ALG += np.random.choice(row[1:], p=p)
     values = np.add(values, row[1:].values.tolist())
-print("Using theoretical optimal learning rate, the total payoff is", total_payoff)
-print(values)
+print("Using theoretical optimal learning rate, the total payoff is", ALG)
+print("Regret is", (max(values) - ALG) / 253)
+print("OPT is", max(values))
+
+# Adversarial Fair Payoffs
+
+learning_rates = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+N = 200
+regrets = []
+for epsilon in learning_rates:
+    regret = 0
+    for _ in range(N):
+        values = [0] * 10
+        p = [0] * 10
+        ALG = 0
+        for index, row in df.iterrows():
+            h = max(row[1:])
+            if index == 0:
+                # First day, random choose a stock
+                ALG += np.random.choice(row[1:])
+            else:
+                # Choose stock based on probability
+                sum_value = 0
+                for i in range(10):
+                    sum_value += (1 + epsilon) ** (values[i] / h)
+                for i in range(10):
+                    # Calculate the probability
+                    p[i] = (1 + epsilon) ** (values[i] / h) / sum_value
+                # Select a stock, sum the total payoff
+                ALG += np.random.choice(row[1:], p=p)
+            values = np.add(values, row[1:].values.tolist())
+        regret += (max(values) - ALG) / 253
+    regrets.append(regret / N)
+print(regrets)
+plt.plot(learning_rates, regrets)
+plt.show()
