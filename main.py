@@ -68,8 +68,8 @@ print("OPT is", max(values))
 
 # Adversarial Fair Payoffs
 
-learning_rates = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-N = 200
+learning_rates = [0, 0.095, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+N = 500
 regrets = []
 for epsilon in learning_rates:
     regret = 0
@@ -80,7 +80,7 @@ for epsilon in learning_rates:
         for index, row in df.iterrows():
             h = max(row[1:])
             if index == 0:
-                # First day, random choose a stock
+                # First day, randomly choose a stock
                 ALG += np.random.choice(row[1:])
             else:
                 # Choose stock based on probability
